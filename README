@@ -1,0 +1,2 @@
+cl-parallel is a parallelism library for Common Lisp. This project is still
+very young, but expect a working library soon.
