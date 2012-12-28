@@ -4,22 +4,8 @@
 
 (in-package #:parallel)
   
-;; This function computes a function upon a list (or lists) in parallel.
-(defun par-map (f xs &optional (max-threads 4))
-  (labels ((recur (done running to-do)
-             (cond ((and (null to-do) (null running))
-                    (reverse done))
-                   ((or (null to-do) (>= (length running) max-threads))
-                    (recur (cons (realize (car (last running))) done)
-                           (butlast running)
-                           to-do))
-                   (t (recur done
-                             (cons (future (funcall f (car to-do))) running)
-                             (cdr to-do))))))
-    (recur nil nil xs)))
-
-;;; The following few functions (take through flatten) are utilitied for
-;;; chunking the list.
+;;; The following few functions (take through flatten) are utilities for
+;;; chunking and flattening the list.
 
 ;; Take up to n elements from a list.
 (defun take (n xs)
@@ -32,16 +18,11 @@
     xs
     (drop (1- n) (cdr xs))))
 
-;; Split a list at a given point.
-(defun split-at (n xs)
-  (list (take n xs) (drop n xs)))
-
 ;; Split a list into chunks.
 (defun chunk-list (n xs)
   (if (< n (length xs))
-    (destructuring-bind (as bs) (split-at n xs)
-      (cons as (chunk-list n bs)))
-    (cons xs nil)))
+    (cons (take n xs) (chunk-list n (drop n xs))))
+    (cons xs nil))
 
 ;; Flatten out a chunked list.
 (defun flatten (xs)
@@ -49,8 +30,26 @@
         ((atom xs) (list xs))
         (t (mapcan #'flatten xs))))
 
+;; This function computes a function upon a list (or lists) in parallel.
+(defun par-map (f xs &optional (max-threads 4))
+  (labels ((recur (done running to-do)
+             (cond ((and (null to-do) (null running))
+                    (reverse done))
+                   ((or (null to-do) (>= (length running) max-threads))
+                    (recur (cons #!(car (last running)) done)
+                           (butlast running)
+                           to-do))
+                   (t (recur done
+                             (cons (future (funcall f (car to-do))) running)
+                             (cdr to-do))))))
+    (recur nil nil xs)))
+
+
 ;; Break a list up into `size` chunks, and process those chunks in parallel.
 (defun par-map-chunked (f size xs &optional (max-threads 4))
   (flatten (par-map (lambda (ys) (mapcar (lambda (y) (funcall f y)) ys))
                     (chunk-list size xs)
                     max-threads)))
+
+(defmacro par-calls (&rest calls)
+  `(mapcar #'realize  (list ,@(mapcar (lambda (c) `(future ,c)) calls))))
