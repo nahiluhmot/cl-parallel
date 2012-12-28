@@ -50,6 +50,3 @@
   (flatten (par-map (lambda (ys) (mapcar (lambda (y) (funcall f y)) ys))
                     (chunk-list size xs)
                     max-threads)))
-
-(defmacro par-calls (&rest calls)
-  `(mapcar #'realize  (list ,@(mapcar (lambda (c) `(future ,c)) calls))))

@@ -28,3 +28,7 @@
 (set-dispatch-macro-character
   #\# #\! (lambda (stream subchar arg)
             `(realize ,(read stream t))))
+
+;; Make multiple calls in parallel.
+(defmacro par-calls (&rest calls)
+  `(mapcar #'realize  (list ,@(mapcar (lambda (c) `(future ,c)) calls))))
