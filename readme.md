@@ -7,11 +7,7 @@ enabled. That being said, I've only tested it with sbcl on Fedora Linux.
 ##Installation (requires quicklisp)##
 
 
-Clone this repository, and then run:
-```lisp
-(load "cl-parallel.asd")
-```
-If the file loaded successfully, now run:
+Clone this repository into ~/quicklisp/local-projects, and then run:
 ```lisp
 (ql:quickload 'cl-parallel)
 ```
