@@ -7,6 +7,7 @@
 (defun par-map-reduce (map-fn reduce-fn init-val xs &optional (max-threads 4))
   "This function applys a function to each element of a list in parallel, then
    reduces it using the reducing function and initial value"
+  (declare (optimize (speed 3)))
   (labels ((recur (y running to-do)
              (cond ((and (null to-do) (null running)) y)
                    ((or (null to-do) (>= (length running) max-threads))
