@@ -5,6 +5,8 @@
 (in-package #:parallel)
 
 (defun par-map-reduce (map-fn reduce-fn init-val xs &optional (max-threads 4))
+  "This function applys a function to each element of a list in parallel, then
+   reduces it using the reducing function and initial value"
   (labels ((recur (y running to-do)
              (cond ((and (null to-do) (null running)) y)
                    ((or (null to-do) (>= (length running) max-threads))
@@ -17,8 +19,8 @@
                              (cdr to-do))))))
     (recur init-val nil xs)))
 
-;; This function computes a function upon a list (or lists) in parallel.
 (defun par-map (f xs &optional (max-threads 4))
+  "This function computes a function upon a list in parallel."
   (reverse (par-map-reduce f (lambda (x y) (cons y x)) nil xs max-threads)))
 
 ;; The following few functions (take through flatten) are utilities for
@@ -46,8 +48,8 @@
            (cond ((null xs) nil)
                  ((atom xs) (list xs))
                  (t (mapcan #'flatten xs)))))
-  ;; Break a list up into `size` chunks, and process those chunks in parallel.
   (defun par-map-chunked (f size xs &optional (max-threads 4))
+    "Break a list up into `size` chunks, and process those chunks in parallel."
     (flatten (par-map (lambda (ys) (mapcar (lambda (y) (funcall f y)) ys))
                       (chunk-list size xs)
                       max-threads))))

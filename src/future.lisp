@@ -4,22 +4,22 @@
 
 (in-package #:parallel)
 
-;; This macro essentially creates a new future type -- a computation that
-;; happens seperately from the rest of the program, and may or may not be
-;; finished
 (defmacro future (&rest body)
+  "This macro essentially creates a new future type -- a computation that
+  happens seperately from the rest of the program, and may or may not be
+  finished"
   `(list 'future (make-thread (lambda () ,@body))))
 
-;; Test whether or not a value is a future.
 (defun future-p (f)
+  "Test whether or not a value is a future."
   (and (consp f)
        (eq 'future (car f))
        (threadp (cadr f))
        (null (cddr f))))
 
-;; Force a future to be evaluated, or just return the original value if it's
-;; not a future.
 (defun realize (f)
+  "Force a future to be evaluated, or just return the original value if it's
+  not a future."
   (if (future-p f)
     (join-thread (second f))
     f))
@@ -29,6 +29,6 @@
   #\# #\! (lambda (stream subchar arg)
             `(realize ,(read stream t))))
 
-;; Make multiple calls in parallel.
 (defmacro par-calls (&rest calls)
+  "Make multiple calls in parallel."
   `(mapcar #'realize  (list ,@(mapcar (lambda (c) `(future ,c)) calls))))
