@@ -28,7 +28,7 @@ calculate the value of that expression.
 * realize - if the argument is a future, blocks until it's thread is joined,
 otherwise, just returns the argument.
 
-* #! (read macro) - a read macro for realize.
+* \#! (read macro) - a read macro for realize.
 
 * par-calls - given an arbitrary number of forms, will evaluate them all  in
 parallel.
