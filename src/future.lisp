@@ -1,6 +1,6 @@
-;;; This file contains the basic facilities for parallelism. There is one
-;;; macro and two functinos, being: future, future-p, and realize, which are
-;;; described below.
+;;; This file contains a high level concurrency api, based on futures and
+;;; realizations. A future spawns a new thread, and realize blocks until that
+;;; thread is finished running.
 
 (in-package #:parallel)
 
@@ -23,3 +23,8 @@
   (if (future-p f)
     (join-thread (second f))
     f))
+
+;; Sets a read-macro (#!) for the realize function.
+(set-dispatch-macro-character
+  #\# #\! (lambda (stream subchar arg)
+            `(realize ,(read stream t))))
