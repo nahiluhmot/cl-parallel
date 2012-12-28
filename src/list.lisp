@@ -4,19 +4,22 @@
 
 (in-package #:parallel)
 
-;; This function computes a function upon a list (or lists) in parallel.
-(defun par-map (f xs &optional (max-threads 4))
-  (labels ((recur (done running to-do)
-             (cond ((and (null to-do) (null running))
-                    (reverse done))
+(defun par-map-reduce (map-fn reduce-fn init-val xs &optional (max-threads 4))
+  (labels ((recur (y running to-do)
+             (cond ((and (null to-do) (null running)) y)
                    ((or (null to-do) (>= (length running) max-threads))
-                    (recur (cons #!(car (last running)) done)
+                    (recur (apply reduce-fn (list y #!(car (last running))))
                            (butlast running)
                            to-do))
-                   (t (recur done
-                             (cons (future (funcall f (car to-do))) running)
+                   (t (recur y
+                             (cons (future (funcall map-fn (car to-do)))
+                                   running)
                              (cdr to-do))))))
-    (recur nil nil xs)))
+    (recur init-val nil xs)))
+
+;; This function computes a function upon a list (or lists) in parallel.
+(defun par-map (f xs &optional (max-threads 4))
+  (reverse (par-map-reduce f (lambda (x y) (cons y x)) nil xs max-threads)))
 
 ;; The following few functions (take through flatten) are utilities for
 ;; chunking and flattening the list.
@@ -48,16 +51,3 @@
     (flatten (par-map (lambda (ys) (mapcar (lambda (y) (funcall f y)) ys))
                       (chunk-list size xs)
                       max-threads))))
-
-(defun par-map-reduce (map-fn reduce-fn init-val xs &optional (max-threads 4))
-  (labels ((recur (y running to-do)
-             (cond ((and (null to-do) (null running)) y)
-                   ((or (null to-do) (>= (length running) max-threads))
-                    (recur (apply reduce-fn (list y #!(car (last running))))
-                           (butlast running)
-                           to-do))
-                   (t (recur y
-                             (cons (future (funcall map-fn (car to-do)))
-                                   running)
-                             (cdr to-do))))))
-    (recur init-val nil xs)))
