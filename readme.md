@@ -39,3 +39,7 @@ that function to every element in the list over the specified number of threads.
 * par-map-chunked - same as par-map, but there is another parameter, the size of
 the chunks that the list will be broken into for threading; often more efficient
 than par-map.
+
+* par-map-reduce - given a mapping function, reducing function, initial value,
+and list, maps the first function accross the list in parallel and collects the
+result using the reducing function.
