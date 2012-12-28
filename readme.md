@@ -20,26 +20,27 @@ Once that's done, you can now access all of the functions in cl-parallel.
 
 ##Synopsis##
 
-* future - given an arbitrary number of forms, will spawn a thread to
+* parallel:future - given an arbitrary number of forms, will spawn a thread to
 calculate the value of that expression.
 
-* future-p - given a form, tests whether or not it's a future.
+* parallel:future-p - given a form, tests whether or not it's a future.
 
-* realize - if the argument is a future, blocks until it's thread is joined,
-otherwise, just returns the argument.
+* parallel:realize - if the argument is a future blocks until it's thread is
+joined, otherwise, just returns the argument.
 
 * \#! (read macro) - a read macro for realize.
 
-* par-calls - given an arbitrary number of forms, will evaluate them all  in
-parallel.
+* parallel:par-calls - given an arbitrary number of forms, will evaluate them
+all in parallel.
 
-* par-map - given a function, list, and optional number of threads, will apply
-that function to every element in the list over the specified number of threads.
+* parallel:par-map - given a function, list, and optional number of threads,
+will apply that function to every element in the list over the specified number
+of threads.
 
-* par-map-chunked - same as par-map, but there is another parameter, the size of
-the chunks that the list will be broken into for threading; often more efficient
-than par-map.
+* parallel:par-map-chunked - same as par-map, but there is another parameter,
+the size of the chunks that the list will be broken into for threading; often
+more efficient than par-map.
 
-* par-map-reduce - given a mapping function, reducing function, initial value,
-and list, maps the first function accross the list in parallel and collects the
-result using the reducing function.
+* parallel:par-map-reduce - given a mapping function, reducing function, initial
+value, and list, maps the first function accross the list in parallel and
+collects the result using the reducing function.
