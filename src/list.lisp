@@ -44,12 +44,10 @@
              (cons xs nil))
 
          ; Flatten out a chunked list.
-         (flatten (xs)
-           (cond ((null xs) nil)
-                 ((atom xs) (list xs))
-                 (t (mapcan #'flatten xs)))))
+         (flatten-1 (xs)
+           (mapcan (lambda (x) (if (atom x) `(,x) x)) xs)))
   (defun par-map-chunked (f size xs &optional (max-threads 4))
     "Break a list up into `size` chunks, and process those chunks in parallel."
-    (flatten (par-map (lambda (ys) (mapcar (lambda (y) (funcall f y)) ys))
-                      (chunk-list size xs)
-                      max-threads))))
+    (flatten-1 (par-map (lambda (ys) (mapcar (lambda (y) (funcall f y)) ys))
+                        (chunk-list size xs)
+                        max-threads))))
