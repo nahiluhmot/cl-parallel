@@ -18,8 +18,6 @@
                              (cdr to-do))))))
     (recur nil nil xs)))
 
-
-  
 ;; The following few functions (take through flatten) are utilities for
 ;; chunking and flattening the list.
 
@@ -50,3 +48,16 @@
     (flatten (par-map (lambda (ys) (mapcar (lambda (y) (funcall f y)) ys))
                       (chunk-list size xs)
                       max-threads))))
+
+(defun par-map-reduce (map-fn reduce-fn init-val xs &optional (max-threads 4))
+  (labels ((recur (y running to-do)
+             (cond ((and (null to-do) (null running)) y)
+                   ((or (null to-do) (>= (length running) max-threads))
+                    (recur (apply reduce-fn (list y #!(car (last running))))
+                           (butlast running)
+                           to-do))
+                   (t (recur y
+                             (cons (future (funcall map-fn (car to-do)))
+                                   running)
+                             (cdr to-do))))))
+    (recur init-val nil xs)))
