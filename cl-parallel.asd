@@ -5,7 +5,7 @@
   :version "0.0.1"
   :serial t
   :depends-on (:bordeaux-threads)
-  :components ((:file "src/package.lisp")
-               (:file "src/future.lisp" :depends-on ("src/package.lisp"))
-               (:file "src/list.lisp"   :depends-on ("src/package.lisp"
-                                                     "src/future.lisp"))))
+  :components ((:file "src/package")
+               (:file "src/future" :depends-on ("src/package"))
+               (:file "src/list"   :depends-on ("src/package"
+                                                "src/future"))))
