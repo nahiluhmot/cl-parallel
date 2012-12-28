@@ -1,5 +1,5 @@
 (asdf:defsystem #:cl-parallel
-  :description "A fairly simple parallelism library for common lisp"
+  :description "A fairly simple parallelism library for Common Lisp"
   :author "Tom Hulihan"
   :license "MIT"
   :version "0.0.1"
