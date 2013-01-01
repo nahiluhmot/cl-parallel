@@ -29,8 +29,12 @@
 
          ; Take up to n elements from a list.
 (labels ((take (n xs)
-           (unless (or (null xs) (= n 0))
-             (cons (car xs) (take (1- n) (cdr xs)))))
+           (labels ((recur (m ys zs)
+                      (if (or (null ys) (= m 0))
+                        (reverse zs)
+                        (recur (1- m) (cdr ys) (cons (car ys) zs)))))
+             (recur n xs nil)))
+
 
          ; Drop up to n elements from a list.
          (drop (n xs)
