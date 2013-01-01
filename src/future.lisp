@@ -25,9 +25,9 @@
     f))
 
 ;; Sets a read-macro (#!) for the realize function.
-(set-dispatch-macro-character
-  #\# #\! (lambda (stream subchar arg)
-            `(realize ,(read stream t))))
+(set-dispatch-macro-character #\# #\!
+  (lambda (stream subchar arg)
+    `(realize ,(read stream t))))
 
 (defmacro par-calls (&rest calls)
   "Make multiple calls in parallel."
