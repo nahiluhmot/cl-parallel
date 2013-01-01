@@ -46,13 +46,11 @@
          (chunk-list (n xs)
            (if (< n (length xs))
              (cons (take n xs) (chunk-list n (drop n xs))))
-             (cons xs nil))
+             (cons xs nil)))
 
-         ; Flatten out a chunked list.
-         (flatten-1 (xs)
-           (mapcan (lambda (x) (if (atom x) `(,x) x)) xs)))
   (defun par-map-chunked (f size xs &optional (max-threads 4))
     "Break a list up into `size` chunks, and process those chunks in parallel."
-    (flatten-1 (par-map (lambda (ys) (mapcar (lambda (y) (funcall f y)) ys))
-                        (chunk-list size xs)
-                        max-threads))))
+    (mapcan #'identity
+            (par-map (lambda (ys) (mapcar (lambda (y) (funcall f y)) ys))
+                     (chunk-list size xs)
+                     max-threads))))
