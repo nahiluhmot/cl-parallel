@@ -2,7 +2,7 @@
   :description "A fairly simple parallelism library for Common Lisp"
   :author "Tom Hulihan"
   :license "MIT"
-  :version "0.0.1"
+  :version "0.1.0"
   :serial t
   :depends-on (:bordeaux-threads)
   :components ((:file "src/package")
