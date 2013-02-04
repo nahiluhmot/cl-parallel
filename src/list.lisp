@@ -28,6 +28,23 @@
   "This function computes a function upon a list in parallel."
   (par-map-reduce f #'cons xs :max-threads max-threads :from-end t))
 
+(defun par-some (pred xs &key max-threads)
+  "Given a predicate and a list, return true if at least one element in the
+   list satifies the predicate."
+  (labels ((recur (running to-do)
+             (cond ((and (null to-do) (null running)) nil)
+                   ((or (null to-do) (>= (length running) max-threads))
+                    ; Although it's slower, all of the running threads are
+                    ; realized when an element satisfying the predicate is
+                    ; found. This ensure there are no zombie threads waiting
+                    ; around.
+                    (if (realize (car (last running)))
+                      (progn (mapcar #'realize running) t)
+                      (recur (butlast running) to-do)))
+                   (t (recur (cons (future (funcall pred (car to-do))) running)
+                             (cdr running))))))
+    (recur nil xs)))
+
 ;; The following few functions (take through flatten) are utilities for
 ;; chunking and flattening the list.
 
