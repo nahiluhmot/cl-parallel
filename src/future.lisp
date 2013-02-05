@@ -31,4 +31,4 @@
 
 (defmacro par-calls (&rest calls)
   "Make multiple calls in parallel."
-  `(mapcar #'realize  (list ,@(mapcar (lambda (c) `(future ,c)) calls))))
+  `(mapcar #'realize  (list ,@(loop for call in calls collect `(future ,call)))))
