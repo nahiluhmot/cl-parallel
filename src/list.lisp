@@ -5,44 +5,53 @@
 
 (in-package #:parallel)
 
+(defmacro with-gensyms ((&rest names) &body body)
+  `(let ,(loop for name in names collect `(,name (gensym)))
+     ,@body))
+
+(defmacro with-thread-queue (not-done doing max-threads &key (on-done nil) (on-reduce nil) (on-build nil))
+  (with-gensyms (to-do running)
+    `(let ((,to-do ,not-done)
+           (,running ,doing))
+      (cond ((and (null ,to-do) (null ,running)) ,on-done)
+            ((or (null ,to-do) (>= (length ,running) ,max-threads)) ,on-reduce)
+            (t ,on-build)))))
+
 (defun par-map-reduce (map-fn reduce-fn xs &key (max-threads 4) (from-end nil) (initial-value nil))
   "This function applys a function to each element of a list in parallel, then
    reduces it using the reducing function and initial value"
   (declare (optimize (speed 3)))
   (labels ((recur (y running to-do)
-             (cond ((and (null to-do) (null running)) y)
-                   ((or (null to-do) (>= (length running) max-threads))
-                    (recur (apply reduce-fn 
-                                  (if from-end
-                                    (list (realize (car (last running))) y)
-                                    (list y (realize (car (last running))))))
-                           (butlast running)
-                           to-do))
-                   (t (recur y
-                             (cons (future (funcall map-fn (car to-do)))
-                                   running)
-                             (cdr to-do))))))
+             (with-thread-queue to-do running max-threads
+               :on-done y
+               :on-reduce (recur (apply reduce-fn
+                                        (if from-end
+                                          (list (realize (car (last running))) y)
+                                          (list y (realize (car (last running))))))
+                                 (butlast running)
+                                 to-do)
+               :on-build (recur y
+                                (cons (future (funcall map-fn (car to-do)))
+                                      running)
+                                (cdr to-do)))))
     (recur initial-value nil (if from-end (reverse xs) xs))))
 
 (defun par-map (f xs &key (max-threads 4))
   "This function computes a function upon a list in parallel."
   (par-map-reduce f #'cons xs :max-threads max-threads :from-end t))
 
-(defun par-some (pred xs &key max-threads)
+(defun par-some (pred xs &key (max-threads 4))
   "Given a predicate and a list, return true if at least one element in the
    list satifies the predicate."
   (labels ((recur (running to-do)
-             (cond ((and (null to-do) (null running)) nil)
-                   ((or (null to-do) (>= (length running) max-threads))
-                    ; Although it's slower, all of the running threads are
-                    ; realized when an element satisfying the predicate is
-                    ; found. This ensure there are no zombie threads waiting
-                    ; around.
-                    (if (realize (car (last running)))
-                      (progn (mapcar #'realize running) t)
-                      (recur (butlast running) to-do)))
-                   (t (recur (cons (future (funcall pred (car to-do))) running)
-                             (cdr running))))))
+             (with-thread-queue to-do running max-threads
+               ; #'realize is mapped across the running threads to ensure there
+               ; are no zomibes waiting around after the computation is over.
+               :on-reduce (if (realize (car (last running)))
+                            (progn (mapcar #'realize running) t)
+                            (recur (butlast running) to-do))
+               :on-build (recur (cons (future (funcall pred (car to-do))) running)
+                                (cdr to-do)))))
     (recur nil xs)))
 
 ;; The following few functions (take through flatten) are utilities for
