@@ -20,7 +20,7 @@
 (defun partition-if (pred xs)
   "Given a predicateand a list, will return a list with the first element being
    all of the elements that satisfy the predicate, and the second element being
-   all of the elements that do not satisfy the predicate"
+   all of the elements that do not satisfy the predicate."
   (labels ((recur (ys true-list false-list)
              (if (null ys)
                `(,true-list ,false-list)
@@ -53,7 +53,7 @@
 (defun par-find-if (pred xs &key (max-threads 4) (sleep-time 0) from-end)
   "Given a predicate and a list, will return an element in the list that
    satisfies that predicate. Note that this does not guarantee that it will
-   return the first element satisfying the predicate"
+   return the first element satisfying the predicate."
   (with-thread-queue (if from-end (reverse xs) xs) (in out)
     :max-threads max-threads
     :sleep-time  sleep-time
@@ -68,6 +68,9 @@
                        out))))
 
 (defun par-map-reduce (map-fn reduce-fn xs &key (max-threads 4) (sleep-time 0) initial-value)
+  "Given a mapping function, reducing function, and list, will map the values
+   accross the list in parallel, then reduce them in the order that the
+   computations finish."
   (labels ((recur (acc running to-do)
              (cond ((and (null to-do) (null running)) acc)
                    ((or (null to-do) (<= max-threads (length running)))
