@@ -34,7 +34,7 @@
   (with-thread-queue xs (in out)
     :max-threads max-threads
     :sleep-time  sleep-time
-    :done (reverse (mapcar #'realize! out))
+    :done (reverse (mapcar #'realize out))
     :down (recur in (mapcar #'realize-if-finished out))
     :up   (recur (cdr in) (cons (future (funcall f (car in))) out))))
 
@@ -44,11 +44,24 @@
   (with-thread-queue xs (in out)
     :max-threads max-threads
     :sleep-time  sleep-time
-    :done (and (member t (mapcar #'realize! out)) t)
+    :done (and (member t (mapcar #'realize out)) t)
     :down (let ((running (remove nil (mapcar #'realize-if-finished out))))
             (or (and (member t running) t)
                 (recur in running)))
     :up   (recur (cdr in) (cons (future (funcall pred (car in))) out))))
+
+(defun par-every (pred xs &key (max-threads 4) (sleep-time 0))
+  "Given a predicate and a list, will determine if every element of the list
+   satisfies that predicate."
+  (with-thread-queue xs (in out)
+    :max-threads max-threads
+    :sleep-time  sleep-time
+    :done (null (delete-if #'identity (mapcar #'realize out)))
+    :down (destructuring-bind (not-done done) (partition-if #'future-p (mapcar #'realize-if-finished out))
+            (unless (member nil done)
+              (recur in not-done)))
+    :up   (recur (cdr in)
+                 (cons (future (funcall pred (car in))) out))))
 
 (defun par-find-if (pred xs &key (max-threads 4) (sleep-time 0) from-end)
   "Given a predicate and a list, will return an element in the list that
@@ -57,15 +70,22 @@
   (with-thread-queue (if from-end (reverse xs) xs) (in out)
     :max-threads max-threads
     :sleep-time  sleep-time
-    :done (find-if pred (mapcar #'realize! out))
+    :done (find-if pred (mapcar #'realize out))
     :down (destructuring-bind (not-done done) (partition-if #'future-p (mapcar #'realize-if-finished out))
             (or (and (some #'identity done)
-                     (progn (mapcar #'realize! not-done) t)
+                     (progn (mapcar #'realize not-done) t)
                      (find-if #'identity done))
                 (recur in not-done)))
     :up   (recur (cdr in)
                  (cons (future (and (funcall pred (car in)) (car in)))
                        out))))
+
+(defun par-find (item xs &key (max-threads 4) (sleep-time 0) from-end)
+  (and (par-find-if (lambda (x) (eq x item)) xs
+                    :max-threads max-threads
+                    :sleep-time sleep-time
+                    :from-end from-end)
+       item))
 
 (defun par-map-reduce (map-fn reduce-fn xs &key (max-threads 4) (sleep-time 0) initial-value)
   "Given a mapping function, reducing function, and list, will map the values
@@ -84,7 +104,7 @@
                              (cdr to-do))))))
     (recur initial-value nil xs)))
 
-;; The following few functions (take through flatten) are utilities for
+;; The following few functions (take through chunk-list) are utilities for
 ;; chunking and flattening the list.
 
          ; Take up to n elements from a list.
@@ -107,13 +127,14 @@
              (cons (take n xs) (chunk-list n (drop n xs))))
              (cons xs nil)))
 
-  (defun par-map-chunked (f size xs &key (max-threads 4))
+  (defun par-map-chunked (f xs &key (chunk-size 1) (max-threads 4) (sleep-time 0))
     "Break a list up into `size` chunks, and process those chunks in parallel."
     (mapcan #'identity
             (par-map (lambda (ys) (mapcar (lambda (y) (funcall f y)) ys))
-                     (chunk-list size xs)
-                     max-threads))))
+                     (chunk-list chunk-size xs)
+                     :max-threads max-threads
+                     :sleep-time  sleep-time))))
 
 (defmacro par-calls (&rest calls)
   "Make multiple calls in parallel."
-  `(mapcar #'realize!  (list ,@(loop for call in calls collect `(future ,call)))))
+  `(mapcar #'realize  (list ,@(loop for call in calls collect `(future ,call)))))
