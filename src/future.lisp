@@ -17,18 +17,26 @@
        (threadp (cadr f))
        (null (cddr f))))
 
-(defun realize (f)
-  "Force a future to be evaluated, or just return the original value if it's
-  not a future."
+(defun future-finished-p (f)
+  "Return true iff the argument is a live thread"
+  (and (future-p f)
+       (not (thread-alive-p (second f)))))
+
+(defun realize! (f)
+  "Force a future to be evaluated, or return nil if the value is not a future."
   (if (future-p f)
     (join-thread (second f))
-    f))
+    nil))
 
-;; Sets a read-macro (#!) for the realize function.
+(defun realize-if-finished (f)
+  "If the future is finished, return the value; if the future is still running,
+   return the future; if the value is not a future, return it."
+  (or (and (future-p f)
+           (future-finished-p f)
+           (realize! f))
+      f))
+
+;; Sets a read-macro (#!) for the realize! function.
 (set-dispatch-macro-character #\# #\!
   (lambda (stream subchar arg)
-    `(realize ,(read stream t))))
-
-(defmacro par-calls (&rest calls)
-  "Make multiple calls in parallel."
-  `(mapcar #'realize  (list ,@(loop for call in calls collect `(future ,call)))))
+    `(realize! ,(read stream t))))
