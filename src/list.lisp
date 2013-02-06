@@ -9,50 +9,77 @@
   `(let ,(loop for name in names collect `(,name (gensym)))
      ,@body))
 
-(defmacro with-thread-queue (not-done doing max-threads &key (on-done nil) (on-reduce nil) (on-build nil))
-  (with-gensyms (to-do running)
-    `(let ((,to-do ,not-done)
-           (,running ,doing))
-      (cond ((and (null ,to-do) (null ,running)) ,on-done)
-            ((or (null ,to-do) (>= (length ,running) ,max-threads)) ,on-reduce)
-            (t ,on-build)))))
+(defmacro with-thread-queue (lst (in out) &key (max-threads 4) (sleep-time 0) done down up)
+  `(labels ((recur (,in ,out)
+             (cond ((null ,in) ,done)
+                   ((<= ,max-threads (count-if-not #'future-finished-p ,out))
+                    (sleep ,sleep-time) ,down)
+                   (t ,up))))
+    (recur ,lst nil)))
 
-(defun par-map-reduce (map-fn reduce-fn xs &key (max-threads 4) (from-end nil) (initial-value nil))
-  "This function applys a function to each element of a list in parallel, then
-   reduces it using the reducing function and initial value"
-  (declare (optimize (speed 3)))
-  (labels ((recur (y running to-do)
-             (with-thread-queue to-do running max-threads
-               :on-done y
-               :on-reduce (recur (apply reduce-fn
-                                        (if from-end
-                                          (list (realize (car (last running))) y)
-                                          (list y (realize (car (last running))))))
-                                 (butlast running)
-                                 to-do)
-               :on-build (recur y
-                                (cons (future (funcall map-fn (car to-do)))
-                                      running)
-                                (cdr to-do)))))
-    (recur initial-value nil (if from-end (reverse xs) xs))))
+(defun partition-if (pred xs)
+  "Given a predicateand a list, will return a list with the first element being
+   all of the elements that satisfy the predicate, and the second element being
+   all of the elements that do not satisfy the predicate"
+  (labels ((recur (ys true-list false-list)
+             (if (null ys)
+               `(,true-list ,false-list)
+               (if (funcall pred (car ys))
+                 (recur (cdr ys) (cons (car ys) true-list) false-list)
+                 (recur (cdr ys) true-list (cons (car ys) false-list))))))
+    (recur (reverse xs) nil nil)))
 
-(defun par-map (f xs &key (max-threads 4))
+(defun par-map (f xs &key (max-threads 4) (sleep-time 0))
   "This function computes a function upon a list in parallel."
-  (par-map-reduce f #'cons xs :max-threads max-threads :from-end t))
+  (with-thread-queue xs (in out)
+    :max-threads max-threads
+    :sleep-time  sleep-time
+    :done (reverse (mapcar #'realize! out))
+    :down (recur in (mapcar #'realize-if-finished out))
+    :up   (recur (cdr in) (cons (future (funcall f (car in))) out))))
 
-(defun par-some (pred xs &key (max-threads 4))
+(defun par-some (pred xs &key (max-threads 4) (sleep-time 0))
   "Given a predicate and a list, return true if at least one element in the
    list satifies the predicate."
-  (labels ((recur (running to-do)
-             (with-thread-queue to-do running max-threads
-               ; #'realize is mapped across the running threads to ensure there
-               ; are no zomibes waiting around after the computation is over.
-               :on-reduce (if (realize (car (last running)))
-                            (progn (mapcar #'realize running) t)
-                            (recur (butlast running) to-do))
-               :on-build (recur (cons (future (funcall pred (car to-do))) running)
-                                (cdr to-do)))))
-    (recur nil xs)))
+  (with-thread-queue xs (in out)
+    :max-threads max-threads
+    :sleep-time  sleep-time
+    :done (and (member t (mapcar #'realize! out)) t)
+    :down (let ((running (remove nil (mapcar #'realize-if-finished out))))
+            (or (and (member t running) t)
+                (recur in running)))
+    :up   (recur (cdr in) (cons (future (funcall pred (car in))) out))))
+
+(defun par-find-if (pred xs &key (max-threads 4) (sleep-time 0) from-end)
+  "Given a predicate and a list, will return an element in the list that
+   satisfies that predicate. Note that this does not guarantee that it will
+   return the first element satisfying the predicate"
+  (with-thread-queue (if from-end (reverse xs) xs) (in out)
+    :max-threads max-threads
+    :sleep-time  sleep-time
+    :done (find-if pred (mapcar #'realize! out))
+    :down (destructuring-bind (not-done done) (partition-if #'future-p (mapcar #'realize-if-finished out))
+            (or (and (some #'identity done)
+                     (progn (mapcar #'realize! not-done) t)
+                     (find-if #'identity done))
+                (recur in not-done)))
+    :up   (recur (cdr in)
+                 (cons (future (and (funcall pred (car in)) (car in)))
+                       out))))
+
+(defun par-map-reduce (map-fn reduce-fn xs &key (max-threads 4) (sleep-time 0) initial-value)
+  (labels ((recur (acc running to-do)
+             (cond ((and (null to-do) (null running)) acc)
+                   ((or (null to-do) (<= max-threads (length running)))
+                    (sleep sleep-time)
+                    (destructuring-bind (not-done done) (partition-if #'future-p (mapcar #'realize-if-finished running))
+                      (recur (reduce reduce-fn done :initial-value acc)
+                             not-done
+                             to-do)))
+                   (t (recur acc
+                             (cons (future (funcall map-fn (car to-do))) running)
+                             (cdr to-do))))))
+    (recur initial-value nil xs)))
 
 ;; The following few functions (take through flatten) are utilities for
 ;; chunking and flattening the list.
@@ -83,3 +110,7 @@
             (par-map (lambda (ys) (mapcar (lambda (y) (funcall f y)) ys))
                      (chunk-list size xs)
                      max-threads))))
+
+(defmacro par-calls (&rest calls)
+  "Make multiple calls in parallel."
+  `(mapcar #'realize!  (list ,@(loop for call in calls collect `(future ,call)))))
