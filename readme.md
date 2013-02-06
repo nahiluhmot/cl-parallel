@@ -35,7 +35,7 @@ finished executing. Otherwise, return the form passed in.
 
 * \#! (read macro) - synonym for realize.
 
-###Actual parallelism  API###
+###Actual parallelism API###
 
 All of the below functions takes the optional keywords :max-threads (default 4)
 and :sleep-time (default 0):
