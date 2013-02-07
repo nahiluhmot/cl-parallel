@@ -56,8 +56,8 @@ elements in the list satisfy the predicate; nil otherwise.
 that satisfies the predicate; nil otherwise. Note that this does not guarantee
 the first element satisfying the predicate is returned.
 
-* par-find - given an item and list, will the item if it is in the list; nil
-otherwise.
+* par-find - given an item and list, will return the item if it is in
+the list; nil otherwise.
 
 * par-map-chunked - same as par-map, but there is another keyword  parameter,
 :chunk-size. This parameter denotes the size of the chunks that will be
