@@ -46,18 +46,20 @@ parallel.
 * par-map - given a function, and a list, will apply that function to every
 in the list.
 
-* par-some - given a predicate and list, will return 'true' if any of the
-elements in the list satisfy the predicate; nil otherwise.
+* par-some - given a predicate and list, will return `T` if any of the
+elements in the list satisfy the predicate; `NIL` otherwise.
 
-* par-every - given a predicate and list, will return 'true' if all of the
-elements in the list satisfy the predicate; nil otherwise.
+* par-every - given a predicate and list, will return `T` if all of the
+elements in the list satisfy the predicate; `NIL` otherwise.
 
-* par-find-if - given a predicate and list, will return an element in the list
-that satisfies the predicate; nil otherwise. Note that this does not guarantee
-the first element satisfying the predicate is returned.
+* par-find-if - given a predicate and list, will return an element in
+the list that satisfies the predicate; `NIL` otherwise. Unlike
+in the standard `FIND-IF`, the value returned by this function may not
+be the leftmost element of the list satisfying the predicate (if there is
+such an element).
 
-* par-find - given an item and list, will the item if it is in the list; nil
-otherwise.
+* par-find - given an item and list, will return the item if it is in
+the list; `NIL` otherwise.
 
 * par-map-chunked - same as par-map, but there is another keyword  parameter,
 :chunk-size. This parameter denotes the size of the chunks that will be
