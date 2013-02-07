@@ -52,9 +52,11 @@ elements in the list satisfy the predicate; `NIL` otherwise.
 * par-every - given a predicate and list, will return `T` if all of the
 elements in the list satisfy the predicate; `NIL` otherwise.
 
-* par-find-if - given a predicate and list, will return an element in the list
-that satisfies the predicate; `NIL` otherwise. Note that this does not guarantee
-the first element satisfying the predicate is returned.
+* par-find-if - given a predicate and list, will return an element in
+the list that satisfies the predicate; `NIL` otherwise. Unlike
+in the standard `FIND-IF`, the value returned by this function may not
+be the leftmost element of the list satisfying the predicate (if there is
+such an element).
 
 * par-find - given an item and list, will return the item if it is in
 the list; `NIL` otherwise.
