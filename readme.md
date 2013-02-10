@@ -7,7 +7,7 @@ only tested it with [SBCL][sbcl] on Fedora Linux and Mac OS X.
 
 ##Installation (requires quicklisp)##
 
-Now that this project is in quicklisp, simply run:
+Now that this project is in [Quicklisp][ql], simply run:
 ```lisp
 (ql:quickload 'cl-parallel)
 ```
@@ -97,3 +97,4 @@ call the reducing function in no specific order.
 
 [bt]: http://common-lisp.net/project/bordeaux-threads/ "Bordeaux Threads"
 [sbcl]: http://www.sbcl.org/ "Steel Bank Common Lisp"
+[ql]: http://www.quicklisp.org/ "Quicklisp"
