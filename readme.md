@@ -2,7 +2,7 @@
 
 cl-parallel is an API for Common Lisp that's designed to make parallelism easy.
 It uses [bordeaux-threads][bt], and should work on most systems on which threads are
-enabled. That being said, I've only tested it with sbcl on Fedora Linux and
+enabled. That being said, I've only tested it with [SBCL][sbcl] on Fedora Linux and
 OSX.
 
 ##Installation (requires quicklisp)##
@@ -96,3 +96,4 @@ collects the result using the reducing function. Note that this function will
 call the reducing function in no specific order.
 
 [bt]: http://common-lisp.net/project/bordeaux-threads/ "Bordeaux Threads"
+[sbcl]: http://www.sbcl.org/ "Steel Bank Common Lisp"
