@@ -27,7 +27,7 @@ the value of that expression.
 * future-finished-p - given a form, return `T` iff it's a future that has
 finished executing.
 
-* realize - if the argument is a future blocks until it's thread is
+* realize - if the argument is a future blocks until its thread is
 joined, otherwise, just returns the argument.
 
 * realize-if-finished - given a form, realize it iff it's a future that has
