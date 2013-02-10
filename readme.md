@@ -62,9 +62,10 @@ such an element).
 * par-find - given an item and list, return the item if it is in
 the list; `NIL` otherwise.
 
-* par-map-chunked - same as par-map, but there is another keyword parameter,
-:chunk-size. This parameter denotes the size of the chunks that will be
-processed in parallel. This function is often more efficient than par-map.
+* par-map-chunked - same as par-map, but there is another keyword
+parameter, `:chunk-size`. This parameter denotes the size of the
+chunks that will be processed in parallel. This function is often more
+efficient than par-map.
 
 * par-map-reduce - given a mapping function, a reducing function, an initial
 value, and a list, map the first function accross the list in parallel and
