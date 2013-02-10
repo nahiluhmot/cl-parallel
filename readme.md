@@ -15,6 +15,28 @@ Now that this project is in quicklisp, simply run:
 Once that's done, you can now access all of the functions in
 cl-parallel, which are in the `PARALLEL` package.
 
+To use cl-parallel in your packages, try
+
+```lisp
+(defpackage :your-package
+  ...
+  (:use :parallel)
+  ...
+)
+```
+
+If you don't want to import all symbols exported by cl-parallel, try
+
+```lisp
+(defpackage :your-package
+  ...
+  (:import-from :parallel #:par-map-reduce)
+  ...
+)
+```
+
+which imports only `par-map-reduce` into your pakage.
+
 ##Synopsis##
 
 ###Low Level 'future' API###
