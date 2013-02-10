@@ -14,8 +14,8 @@ Now that this project is in [Quicklisp][ql], simply run:
 
 ##Making cl-parallel available##
 
-Once that's done, you can now access all of the functions in
-cl-parallel, which are in the `PARALLEL` package.
+Once cl-parallel is installed, you can now access all of its
+functions, which are in the `PARALLEL` package.
 
 To use cl-parallel in your packages, try
 
