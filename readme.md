@@ -22,7 +22,7 @@ cl-parallel, which are in the `PARALLEL` package.
 * future - given an arbitrary number of forms, will spawn a thread to calculate
 the value of the implicit progn made up of the forms.
 
-* future-p - given a form, tests whether or not it's a future.
+* future-p - given a form, tests whether it's a future.
 
 * future-finished-p - given a form, return `T` iff it's a future that has
 finished executing.
