@@ -37,8 +37,8 @@ finished executing. Otherwise, return the form passed in.
 
 ###Actual parallelism API###
 
-All of the below functions takes the optional keywords :max-threads (default 4)
-and :sleep-time (default 0):
+All of the below functions takes the optional keywords `:max-threads` (default 4)
+and `:sleep-time` (default 0):
 
 * par-calls - given an arbitrary number of forms, will evaluate them all in
 parallel.
