@@ -24,7 +24,7 @@ the value of that expression.
 
 * future-p - given a form, tests whether or not it's a future.
 
-* future-finished-p - given a form, return t iff it's a future that has
+* future-finished-p - given a form, return `T` iff it's a future that has
 finished executing.
 
 * realize - if the argument is a future blocks until it's thread is
