@@ -1,9 +1,9 @@
 #cl-parallel#
 
-cl-parallel is an API for Common Lisp that's designed to make parallelism easy.
-It uses [bordeaux-threads][bt], and should work on most systems on which threads are
-enabled. That being said, I've only tested it with [SBCL][sbcl] on Fedora Linux and
-OSX.
+cl-parallel is an API for Common Lisp that's designed to make
+parallelism easy.  It uses [bordeaux-threads][bt], so cl-parallel
+should work on threaded Common Lisps. That being said, I've only
+tested it with [SBCL][sbcl] on Fedora Linux and OSX.
 
 ##Installation (requires quicklisp)##
 
