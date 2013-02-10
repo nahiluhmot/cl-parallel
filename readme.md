@@ -1,7 +1,7 @@
 #cl-parallel#
 
 cl-parallel is an API for Common Lisp that's designed to make parallelism easy.
-It uses bordeaux-threads, and should work on most systems on which threads are
+It uses [bordeaux-threads][bt], and should work on most systems on which threads are
 enabled. That being said, I've only tested it with sbcl on Fedora Linux and
 OSX.
 
@@ -69,3 +69,5 @@ processed in parallel. This function is often more efficient than par-map.
 value, and list, maps the first function accross the list in parallel and
 collects the result using the reducing function. Note that this function will
 call the reducing function in no specific order.
+
+[bt]: http://common-lisp.net/project/bordeaux-threads/ "Bordeaux Threads"
