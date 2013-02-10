@@ -12,6 +12,8 @@ Now that this project is in quicklisp, simply run:
 (ql:quickload 'cl-parallel)
 ```
 
+##Making cl-parallel available##
+
 Once that's done, you can now access all of the functions in
 cl-parallel, which are in the `PARALLEL` package.
 
