@@ -68,7 +68,7 @@ chunks that will be processed in parallel. This function is often more
 efficient than par-map.
 
 * par-map-reduce - given a mapping function, a reducing function, an initial
-value, and a list, map the first function accross the list in parallel and
+value, and a list, map the first function across the list in parallel and
 collects the result using the reducing function. Note that this function will
 call the reducing function in no specific order.
 
