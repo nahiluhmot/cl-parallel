@@ -30,9 +30,8 @@ finished executing.
 * realize - if the argument is a future, block until its thread is
 joined; otherwise, return the argument.
 
-* realize-if-finished - given a form that is a future, realize it iff
-it has finished executing.  If the argument form is not a future, it
-is returned.
+* realize-if-finished - given a future, realize it iff it has finished
+executing.  If the argument is not a future, it is returned.
 
 * \#! (read macro) - synonym for realize.
 
