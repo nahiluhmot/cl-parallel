@@ -5,10 +5,6 @@
 
 (in-package #:parallel)
 
-(defmacro with-gensyms ((&rest names) &body body)
-  `(let ,(loop for name in names collect `(,name (gensym)))
-     ,@body))
-
 (defmacro with-thread-queue (lst (in out) &key (max-threads 4) (sleep-time 0) done down up)
   `(labels ((recur (,in ,out)
              (cond ((null ,in) ,done)
