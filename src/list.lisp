@@ -21,9 +21,9 @@
     (recur ,lst nil)))
 
 (defun partition-if (pred xs)
-  "Given a predicateand a list, will return a list with the first element being
-   all of the elements that satisfy the predicate, and the second element being
-   all of the elements that do not satisfy the predicate."
+  "Given a predicate and a list, will return a list with the first element
+   being all of the elements that satisfy the predicate, and the second
+   element being all of the elements that do not satisfy the predicate."
   (labels ((recur (ys true-list false-list)
              (if (null ys)
                `(,true-list ,false-list)
@@ -66,46 +66,56 @@
     :up   (recur (cdr in)
                  (cons (future (funcall pred (car in))) out))))
 
-(defun par-find-if (pred xs &key (max-threads 4) (sleep-time 0) from-end)
-  "Given a predicate and a list, will return an element in the list that
-   satisfies that predicate. Note that this does not guarantee that it will
-   return the first element satisfying the predicate."
-  (with-thread-queue (if from-end (reverse xs) xs) (in out)
+(defun par-find-if (pred xs &key (max-threads 4) (key nil key-p) from-end)
+  "Given a predicate and a list, will return the first element in the list that
+   satisfies that predicate."
+  (with-sequential-thread-queue (if from-end (reverse xs) xs) (to-do running)
     :max-threads max-threads
-    :sleep-time  sleep-time
-    :done (find-if pred (mapcar #'realize out))
-    :down (destructuring-bind (not-done done) (partition-if #'future-p (mapcar #'realize-if-finished out))
-            (or (and (some #'identity done)
-                     (progn (mapcar #'realize not-done) t)
-                     (find-if #'identity done))
-                (recur in not-done)))
-    :up   (recur (cdr in)
-                 (cons (future (and (funcall pred (car in)) (car in)))
-                       out))))
+    :down (let ((done (realize (car (last running)))))
+            (or (and done
+                     (mapcar #'realize running)
+                     (or (and key-p (funcall key done)) done))
+                (recur to-do (butlast running))))
+    :up (recur (cdr to-do)
+               (cons (future (and (funcall pred (car to-do)) (car to-do)))
+                     running))))
 
-(defun par-find (item xs &key (max-threads 4) (sleep-time 0) from-end)
+(defun par-find (item xs &key (max-threads 4) from-end)
+  "Given an item and a list, will return that item if it is found, nil
+   otherwise."
   (and (par-find-if (lambda (x) (eq x item)) xs
                     :max-threads max-threads
-                    :sleep-time sleep-time
                     :from-end from-end)
        item))
+
+(defun par-position-if (pred xs &key (max-threads 4) from-end)
+  (let ((x (if from-end (length xs) 0)))
+    (with-sequential-thread-queue (if from-end (reverse xs) xs) (to-do running)
+      :max-threads max-threads
+      :down (or (and (realize (car (last running))) x)
+                (recur to-do (butlast running)))
+      :up   (recur (cdr to-do)
+                   (cons (future (or (funcall pred (car to-do))
+                                     (setf x (if from-end (1- x) (1+ x)))
+                                     nil))
+                         running)))))
 
 (defun par-map-reduce (map-fn reduce-fn xs &key (max-threads 4) (sleep-time 0) initial-value)
   "Given a mapping function, reducing function, and list, will map the values
    accross the list in parallel, then reduce them in the order that the
    computations finish."
-  (labels ((recur (acc running to-do)
+  (labels ((recur (acc to-do running)
              (cond ((and (null to-do) (null running)) acc)
                    ((or (null to-do) (<= max-threads (length running)))
                     (sleep sleep-time)
                     (destructuring-bind (not-done done) (partition-if #'future-p (mapcar #'realize-if-finished running))
                       (recur (reduce reduce-fn done :initial-value acc)
-                             not-done
-                             to-do)))
+                             to-do
+                             not-done)))
                    (t (recur acc
-                             (cons (future (funcall map-fn (car to-do))) running)
-                             (cdr to-do))))))
-    (recur initial-value nil xs)))
+                             (cdr to-do)
+                             (cons (future (funcall map-fn (car to-do))) running))))))
+    (recur initial-value xs nil)))
 
 ;; The following few functions (take through chunk-list) are utilities for
 ;; chunking and flattening the list.
