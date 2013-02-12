@@ -13,6 +13,13 @@
                    (t ,up))))
     (recur ,lst nil)))
 
+(defmacro with-sequential-thread-queue (lst (to-do running) &key (max-threads 4) done down up)
+  `(labels ((recur (,to-do ,running)
+             (cond ((and (null ,to-do) (null ,running)) ,done)
+                   ((or (null ,to-do) (<= ,max-threads (length ,running))) ,down)
+                   (t ,up))))
+    (recur ,lst nil)))
+
 (defun partition-if (pred xs)
   "Given a predicateand a list, will return a list with the first element being
    all of the elements that satisfy the predicate, and the second element being
