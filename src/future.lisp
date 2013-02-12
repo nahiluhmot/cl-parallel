@@ -24,16 +24,16 @@
 
 (defun realize (f)
   "Force a future to be evaluated, or return nil if the value is not a future."
-  (and (future-p f)
-       (join-thread (second f))))
+  (if (future-p f)
+    (join-thread (second f))
+    f))
 
 (defun realize-if-finished (f)
   "If the future is finished, return the value; if the future is still running,
    return the future; if the value is not a future, return it."
-  (or (and (future-p f)
-           (future-finished-p f)
-           (realize f))
-      f))
+  (if (future-finished-p f)
+    (realize f)
+    f))
 
 ;; Sets a read-macro (#!) for the realize function.
 (set-dispatch-macro-character #\# #\!
