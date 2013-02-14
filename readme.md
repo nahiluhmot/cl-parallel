@@ -77,10 +77,7 @@ elements in the list satisfy the predicate; `NIL` otherwise.
 elements in the list satisfy the predicate; `NIL` otherwise.
 
 * par-find-if - given a predicate and list, return an element in
-the list that satisfies the predicate; `NIL` otherwise. Unlike
-in the standard `FIND-IF`, the value returned by this function may not
-be the leftmost element of the list satisfying the predicate (if there is
-such an element).
+the list that satisfies the predicate; `NIL` otherwise.
 
 * par-find - given an item and list, return the item if it is in
 the list; `NIL` otherwise.
