@@ -88,18 +88,6 @@
                     :from-end from-end)
        item))
 
-(defun par-position-if (pred xs &key (max-threads 4) from-end)
-  (let ((x (if from-end (length xs) 0)))
-    (with-sequential-thread-queue (if from-end (reverse xs) xs) (to-do running)
-      :max-threads max-threads
-      :down (or (and (realize (car (last running))) x)
-                (recur to-do (butlast running)))
-      :up   (recur (cdr to-do)
-                   (cons (future (or (funcall pred (car to-do))
-                                     (setf x (if from-end (1- x) (1+ x)))
-                                     nil))
-                         running)))))
-
 (defun par-map-reduce (map-fn reduce-fn xs &key (max-threads 4) (sleep-time 0) initial-value)
   "Given a mapping function, reducing function, and list, will map the values
    accross the list in parallel, then reduce them in the order that the
