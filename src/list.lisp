@@ -80,13 +80,15 @@
                (cons (future (and (funcall pred (car to-do)) (car to-do)))
                      running))))
 
-(defun par-find (item xs &key (max-threads 4) from-end)
+(defun par-find (item xs &key from-end (test #'eq) (max-threads 4) (key nil key-p))
   "Given an item and a list, will return that item if it is found, nil
    otherwise."
-  (and (par-find-if (lambda (x) (eq x item)) xs
+  (and (par-find-if (lambda (x) (funcall test x item)) xs
                     :max-threads max-threads
                     :from-end from-end)
-       item))
+       (if key-p
+         (funcall key item)
+         item)))
 
 (defun par-map-reduce (map-fn reduce-fn xs &key (max-threads 4) (sleep-time 0) initial-value)
   "Given a mapping function, reducing function, and list, will map the values
