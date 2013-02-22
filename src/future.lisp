@@ -28,6 +28,12 @@
     (join-thread (second f))
     f))
 
+(defun forget (f)
+  "Kill the future."
+  (if (future-p f)
+    (handler-case (destroy-thread (second f))
+      (error (e) nil))))
+
 (defun realize-if-finished (f)
   "If the future is finished, return the value; if the future is still running,
    return the future; if the value is not a future, return it."
